@@ -58,7 +58,6 @@ public class GameView implements View {
 
 
     private void setupPanels(GameController gameControllerRef) {
-
         m_MainMenuPanel = new JPanel(new GridLayout(0, 1));
         m_MainMenuPanel.setDoubleBuffered(true);
 

@@ -2,10 +2,11 @@ package StackCalculator;
 
 import Calculator.Calculator;
 import Commands.CommandReader;
+import Log.Log;
 
-public class StackCalculator implements Calculator {
+public class StackCalculator implements Calculator, AutoCloseable {
 
-    private StackCalculatorContext m_Context;
+    private StackCalculatorContext m_Context = null;
 
     public StackCalculator() {
         m_Context = new StackCalculatorContext();
@@ -13,6 +14,8 @@ public class StackCalculator implements Calculator {
 
     public StackCalculator(String outputPath) {
         m_Context = new StackCalculatorContext(outputPath);
+        Log.GetLogger().info("");
+        Log.GetLogger().info("StackCalculator created.");
     }
 
     @Override
@@ -27,5 +30,10 @@ public class StackCalculator implements Calculator {
 
     }
 
+    @Override
+    public void close() throws Exception {
+        m_Context.close();
+        Log.GetLogger().info("StackCalculator closed!");
+    }
 }
 

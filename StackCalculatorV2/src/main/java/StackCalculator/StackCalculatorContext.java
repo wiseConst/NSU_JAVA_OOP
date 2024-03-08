@@ -12,7 +12,6 @@ import java.util.Stack;
 
 public class StackCalculatorContext implements AutoCloseable, Context {
 
-
     private HashMap<String, Double> m_DefinedVariables;
     private Stack<Double> m_Stack;
 
@@ -74,6 +73,12 @@ public class StackCalculatorContext implements AutoCloseable, Context {
 
 
     public void DefineVariable(String variableName, Double value) {
+        final String regex = "[0-9]+[.]?[0-9]*";
+        if (variableName.matches(regex)) {
+            Log.GetLogger().error("Variable name is numeric.");
+            throw new RuntimeException();
+        }
+
         if (m_DefinedVariables.containsKey(variableName)) {
             Log.GetLogger().error("Redefinition of " + variableName);
             throw new RuntimeException();
@@ -103,5 +108,7 @@ public class StackCalculatorContext implements AutoCloseable, Context {
     @Override
     public void close() throws Exception {
         if (m_OutputFileWriter != null) m_OutputFileWriter.close();
+
+        Log.GetLogger().info("StackCalculatorContext closed!");
     }
 }

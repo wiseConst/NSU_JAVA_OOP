@@ -10,7 +10,6 @@ public class Sprite {
 
     protected BufferedImage m_Texture = null;
 
-
     public BufferedImage GetTexture() {
         return m_Texture;
     }

@@ -5,9 +5,7 @@ import java.awt.image.BufferedImage;
 
 
 public class Tile extends Sprite {
-
-    private Color m_Color = null;
-
+    
     private boolean m_bIsDestroyed = false;
 
     public Tile(BufferedImage texture, int x, int y) {

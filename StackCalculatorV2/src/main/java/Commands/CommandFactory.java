@@ -15,7 +15,6 @@ public class CommandFactory {
     private static HashMap<String, Class<? extends Command>> m_CommandMap = new HashMap<>();
 
     private CommandFactory() {
-
     }
 
     public static void Init(String commandMapPath) {

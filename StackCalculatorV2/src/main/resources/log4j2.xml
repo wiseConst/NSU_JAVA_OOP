@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-level %logger{36} - %msg%n"/>
+            <Filters>
+                <ThresholdFilter level="debug"/>
+            </Filters>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="Debug">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

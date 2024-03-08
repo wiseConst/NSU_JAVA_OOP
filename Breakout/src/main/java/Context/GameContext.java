@@ -26,10 +26,6 @@ public class GameContext implements Context {
         return m_Score;
     }
 
-    public void SetScore(Integer score) {
-        m_Score = score;
-    }
-
     public void Clear() {
         m_Username = CoreDefines.s_DEFAULT_USERNAME;
         m_Score = 0;

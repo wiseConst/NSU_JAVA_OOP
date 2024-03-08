@@ -81,7 +81,6 @@ public class GameController implements Controller, KeyListener {
 
         for (var tile : m_ModelRef.GetTiles()) {
             if ((ball.getRect()).intersects(tile.getRect())) {
-
                 final int ballLeft = (int) ball.getRect().getMinX();
                 final int ballHeight = (int) ball.getRect().getHeight();
                 final int ballWidth = (int) ball.getRect().getWidth();

@@ -12,8 +12,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        try {
-            var stackCalculator = new StackCalculator(OUTPUT_PATH);
+        try (var stackCalculator = new StackCalculator(OUTPUT_PATH)) {
             CommandReader commandReader;
 
             if (args.length > 0) commandReader = new CommandReader(args[0]);
