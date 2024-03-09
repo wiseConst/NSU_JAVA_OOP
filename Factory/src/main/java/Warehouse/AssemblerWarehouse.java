@@ -12,7 +12,7 @@ public class AssemblerWarehouse extends Warehouse {
     private PartsWarehouse m_BodyKitWarehouse = null;
     private PartsWarehouse m_AccessoryWarehouse = null;
 
-    private boolean m_bDealersRequestedCars = false;
+    private Object m_ControllerLock = null;
     private Thread m_Controller = null;
 
     public AssemblerWarehouse(String name, Integer capacity, Integer workerCount) {
@@ -20,18 +20,20 @@ public class AssemblerWarehouse extends Warehouse {
 
         m_WorkerCount = workerCount;
         m_WorkerPool = new ThreadPool(m_WorkerCount);
+
+
+        m_ControllerLock = new Object();
         m_Controller = new Thread() {
             @Override
             public void run() {
-                while (true) {
-                    if (m_bDealersRequestedCars) {
-                        MakeCars();
-                    } else {
+                synchronized (m_ControllerLock) {
+                    while (true) {
                         try {
-                            sleep(1000);
+                            m_ControllerLock.wait();
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt(); // restore interrupted status
                         }
+                        MakeCars();
                     }
                 }
             }
@@ -59,7 +61,11 @@ public class AssemblerWarehouse extends Warehouse {
     }
 
     public synchronized void checkAvailableCars() {
-        m_bDealersRequestedCars = getCurrentStorageSize().equals(0);
+        if (getCurrentStorageSize() > 0) return;
+
+        synchronized (m_ControllerLock) {
+            m_ControllerLock.notify();
+        }
     }
 
     public void Shutdown() {
