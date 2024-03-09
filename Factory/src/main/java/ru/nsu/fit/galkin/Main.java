@@ -4,7 +4,7 @@ import Factory.Factory;
 import GUI.FactoryObserver;
 
 public class Main {
-    private static final String s_FACTORY_CONFIG_PATH = "Factory/src/main/resources/factory.cfg";
+    private static final String s_FACTORY_CONFIG_PATH = "src/main/resources/factory.cfg";
 
     public static void main(String[] args) {
 

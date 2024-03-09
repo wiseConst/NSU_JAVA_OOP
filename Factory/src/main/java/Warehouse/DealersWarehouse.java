@@ -42,7 +42,7 @@ public class DealersWarehouse extends Warehouse {
                 Thread.sleep(m_DelayMS);
 
                 var car = (Car) assemblerWarehouse.getFactoryObject();
-                addPart(car);
+                // addPart(car);
 
                 Log.GetLogger().info("Dealer: " + Thread.currentThread().threadId() + ", Car: " + car.getID() + ", Engine: " + car.getEngine().getID() + ", BodyKit: " + car.getBodyKit().getID() + ", Accessory: " + car.getAccessory().getID());
             } catch (InterruptedException e) {
@@ -50,7 +50,7 @@ public class DealersWarehouse extends Warehouse {
             }
 
             // New dealer arrived.
-            getFactoryObject();
+            // getFactoryObject();
         };
 
         try {

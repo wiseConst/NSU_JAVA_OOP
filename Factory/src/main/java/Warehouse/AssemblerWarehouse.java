@@ -24,11 +24,11 @@ public class AssemblerWarehouse extends Warehouse {
             @Override
             public void run() {
                 while (true) {
-                    if (m_bDealersRequestedCars)
+                    if (m_bDealersRequestedCars) {
                         MakeCars();
-                    else {
+                    } else {
                         try {
-                            sleep(500);
+                            sleep(1000);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt(); // restore interrupted status
                         }

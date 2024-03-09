@@ -24,7 +24,6 @@ public class ThreadPool {
     }
 
     public void shutdown() {
-
         m_ExecutorService.shutdown();
         try {
             // Wait for tasks to complete execution after a shutdown request
@@ -39,7 +38,6 @@ public class ThreadPool {
             // Preserve interrupt status
             Thread.currentThread().interrupt();
         }
-
     }
 
 }
