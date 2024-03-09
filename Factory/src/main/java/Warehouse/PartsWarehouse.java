@@ -4,6 +4,8 @@ import FactoryObject.*;
 import Log.Log;
 import ThreadPool.*;
 
+import static java.lang.Thread.sleep;
+
 public class PartsWarehouse extends Warehouse {
 
     public enum ESupplyType {
@@ -16,7 +18,7 @@ public class PartsWarehouse extends Warehouse {
 
     private Integer m_DelayMS = 0;
 
-    private ESupplyType m_SupplyType;
+    private final ESupplyType m_SupplyType;
     private Integer m_WorkerCount = 0;
 
     public PartsWarehouse(String name, Integer capacity, Integer supplierCount, Integer supplierIntervalMS, ESupplyType supplyType) {
@@ -29,13 +31,15 @@ public class PartsWarehouse extends Warehouse {
     }
 
     public void ReplenishSupplies() {
+        if (!m_FactoryObjectPool.isValid()) return;
+
         Runnable task = () -> {
             if (Thread.interrupted()) return;
 
             try {
-                Thread.sleep(m_DelayMS);
+                sleep(m_DelayMS);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                Thread.currentThread().interrupt(); // restore interrupted status
             }
 
             switch (m_SupplyType) {
@@ -52,7 +56,11 @@ public class PartsWarehouse extends Warehouse {
 
         };
 
-        // 1 part per delay
+        try {
+            sleep(m_DelayMS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // restore interrupted status
+        }
         for (int i = 0; i < m_WorkerCount; ++i)
             m_FactoryObjectPool.submitTask(task);
     }

@@ -19,7 +19,6 @@ public class FactoryObserver extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-
         setSize(400, 250);
 
         addWindowListener(new WindowListener() {
@@ -84,8 +83,8 @@ public class FactoryObserver extends JFrame {
                     factoryRef.setAccessorySupplierDelay(accessorySupplierDelay.getValue());
                 }
             });
-            panel.add(accessorySupplierDelay);
             panel.add(accessorySupplierDelayLabel);
+            panel.add(accessorySupplierDelay);
         }
 
         {
@@ -98,8 +97,8 @@ public class FactoryObserver extends JFrame {
                     factoryRef.setBodyKitSupplierDelay(bodyKitSupplierDelay.getValue());
                 }
             });
-            panel.add(bodyKitSupplierDelay);
             panel.add(bodyKitSupplierDelayLabel);
+            panel.add(bodyKitSupplierDelay);
         }
 
         {
@@ -112,13 +111,13 @@ public class FactoryObserver extends JFrame {
                     factoryRef.setEngineSupplierDelay(engineSupplierDelay.getValue());
                 }
             });
-            panel.add(engineSupplierDelay);
             panel.add(engineSupplierDelayLabel);
+            panel.add(engineSupplierDelay);
         }
 
         {
             JLabel dealerDelayLabel = new JLabel("Current dealer supplier delay: " + factoryRef.getCurrentDealerDelay());
-            JSlider dealerDelay = new JSlider(JSlider.HORIZONTAL, 1000, 5000, factoryRef.getCurrentDealerDelay());
+            JSlider dealerDelay = new JSlider(JSlider.HORIZONTAL, 1000, 10000, factoryRef.getCurrentDealerDelay());
             dealerDelay.addChangeListener(new ChangeListener() {
                 @Override
                 public void stateChanged(ChangeEvent e) {
@@ -126,8 +125,8 @@ public class FactoryObserver extends JFrame {
                     factoryRef.setDealerDelay(dealerDelay.getValue());
                 }
             });
-            panel.add(dealerDelay);
             panel.add(dealerDelayLabel);
+            panel.add(dealerDelay);
         }
 
         add(panel);
@@ -144,9 +143,8 @@ public class FactoryObserver extends JFrame {
                 panel.repaint();
             }
         });
-
-
         timer.start();
+
         factoryRef.Run();
     }
 

@@ -33,17 +33,32 @@ public class DealersWarehouse extends Warehouse {
 
 
     public void AcquireCars(AssemblerWarehouse assemblerWarehouse) {
+        if (!m_DealerPool.isValid()) return;
 
         Runnable task = () -> {
+            if (Thread.interrupted()) return;
 
             try {
-                // wait and then wake up if requested.
                 Thread.sleep(m_DelayMS);
-                addPart(assemblerWarehouse.getFactoryObject());
+
+                var car = (Car) assemblerWarehouse.getFactoryObject();
+                addPart(car);
+
+                Log.GetLogger().info("Dealer: " + Thread.currentThread().threadId() + ", Car: " + car.getID() + ", Engine: " + car.getEngine().getID() + ", BodyKit: " + car.getBodyKit().getID() + ", Accessory: " + car.getAccessory().getID());
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                Thread.currentThread().interrupt(); // restore interrupted status
             }
+
+            // New dealer arrived.
+            getFactoryObject();
         };
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // restore interrupted status
+        }
+        assemblerWarehouse.checkAvailableCars();
 
         for (int i = 0; i < m_WorkerCount; ++i)
             m_DealerPool.submitTask(task);

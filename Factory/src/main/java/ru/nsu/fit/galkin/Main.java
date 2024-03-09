@@ -10,9 +10,5 @@ public class Main {
 
         Factory factory = new Factory(s_FACTORY_CONFIG_PATH);
         FactoryObserver factoryObserver = new FactoryObserver(factory);
-
-        //factory.Run();
-
-        factory.Shutdown();
     }
 }
