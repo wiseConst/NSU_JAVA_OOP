@@ -32,7 +32,7 @@ public class DealersWarehouse extends Warehouse {
     }
 
 
-    public void AcquireCars(AssemblerWarehouse assemblerWarehouse) {
+    public void AcquireCars(AssemblerWarehouse assemblerWarehouse, boolean bLogSale) {
         if (!m_DealerPool.isValid()) return;
 
         Runnable task = () -> {
@@ -44,7 +44,9 @@ public class DealersWarehouse extends Warehouse {
                 var car = (Car) assemblerWarehouse.getFactoryObject();
                 // addPart(car);
 
-                Log.GetLogger().info("Dealer: " + Thread.currentThread().threadId() + ", Car: " + car.getID() + ", Engine: " + car.getEngine().getID() + ", BodyKit: " + car.getBodyKit().getID() + ", Accessory: " + car.getAccessory().getID());
+                if (bLogSale) {
+                    Log.GetLogger().info("Dealer: " + Thread.currentThread().threadId() + ", Car: " + car.getID() + ", Engine: " + car.getEngine().getID() + ", BodyKit: " + car.getBodyKit().getID() + ", Accessory: " + car.getAccessory().getID());
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // restore interrupted status
             }
