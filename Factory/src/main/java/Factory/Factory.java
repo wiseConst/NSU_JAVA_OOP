@@ -31,17 +31,64 @@ public class Factory {
         try {
             ConfigParser configParser = new ConfigParser(factoryConfigPath);
 
-            m_BodyKitWarehouse = new PartsWarehouse("BodyKitWarehouse", configParser.Get("StorageBodySize"), configParser.Get("BodySuppliers"), m_SupplierIntervalMs, ESupplyType.SUPPLY_TYPE_BODY_KIT);
-            m_EngineWarehouse = new PartsWarehouse("EngineWarehouse", configParser.Get("StorageMotorSize"), configParser.Get("MotorSuppliers"), m_SupplierIntervalMs, ESupplyType.SUPPLY_TYPE_ENGINE);
-            m_AccessoryWarehouse = new PartsWarehouse("AccessoryWarehouse", configParser.Get("StorageAccessorySize"), configParser.Get("AccessorySuppliers"), m_SupplierIntervalMs,
-                    ESupplyType.SUPPLY_TYPE_ACCESSORY);
+            {
+                var storageBodySize = configParser.Get("StorageBodySize");
+                if (storageBodySize <= 0) throw new RuntimeException("storageBodySize <= 0!");
 
-            m_AssemblerWarehouse = new AssemblerWarehouse("AssemblerWarehouse", configParser.Get("StorageAutoSize"), configParser.Get("Workers"));
-            m_AssemblerWarehouse.setEngineWarehouse(m_EngineWarehouse);
-            m_AssemblerWarehouse.setBodyKitWarehouse(m_BodyKitWarehouse);
-            m_AssemblerWarehouse.setAccessoryWarehouse(m_AccessoryWarehouse);
+                var BodySuppliers = configParser.Get("BodySuppliers");
+                if (BodySuppliers <= 0) throw new RuntimeException("BodySuppliers <= 0!");
 
-            m_Dealers = new DealersWarehouse("Dealers", configParser.Get("Dealers"), configParser.Get("Dealers"), m_DealerRequestIntervalMs);
+                if (m_SupplierIntervalMs <= 0) throw new RuntimeException("m_SupplierIntervalMs <= 0!");
+                m_BodyKitWarehouse = new PartsWarehouse("BodyKitWarehouse", storageBodySize, configParser.Get("BodySuppliers"), m_SupplierIntervalMs, ESupplyType.SUPPLY_TYPE_BODY_KIT);
+            }
+
+
+            {
+                var storageMotorSize = configParser.Get("StorageMotorSize");
+                if (storageMotorSize <= 0) throw new RuntimeException("storageMotorSize <= 0!");
+
+                var MotorSuppliers = configParser.Get("MotorSuppliers");
+                if (MotorSuppliers <= 0) throw new RuntimeException("MotorSuppliers <= 0!");
+
+                if (m_SupplierIntervalMs <= 0) throw new RuntimeException("m_SupplierIntervalMs <= 0!");
+                m_EngineWarehouse = new PartsWarehouse("EngineWarehouse", storageMotorSize, MotorSuppliers, m_SupplierIntervalMs, ESupplyType.SUPPLY_TYPE_ENGINE);
+            }
+
+
+            {
+                var storageAccessorySize = configParser.Get("StorageAccessorySize");
+                if (storageAccessorySize <= 0) throw new RuntimeException("storageAccessorySize <= 0!");
+
+                var AccessorySuppliers = configParser.Get("AccessorySuppliers");
+                if (AccessorySuppliers <= 0) throw new RuntimeException("AccessorySuppliers <= 0!");
+
+                if (m_SupplierIntervalMs <= 0) throw new RuntimeException("m_SupplierIntervalMs <= 0!");
+                m_AccessoryWarehouse = new PartsWarehouse("AccessoryWarehouse", storageAccessorySize, AccessorySuppliers, m_SupplierIntervalMs,
+                        ESupplyType.SUPPLY_TYPE_ACCESSORY);
+            }
+
+            {
+                var StorageAutoSize = configParser.Get("StorageAutoSize");
+                if (StorageAutoSize <= 0) throw new RuntimeException("StorageAutoSize <= 0!");
+
+                var Workers = configParser.Get("Workers");
+                if (Workers <= 0) throw new RuntimeException("Workers <= 0!");
+
+                m_AssemblerWarehouse = new AssemblerWarehouse("AssemblerWarehouse", StorageAutoSize, Workers);
+
+                m_AssemblerWarehouse.setEngineWarehouse(m_EngineWarehouse);
+                m_AssemblerWarehouse.setBodyKitWarehouse(m_BodyKitWarehouse);
+                m_AssemblerWarehouse.setAccessoryWarehouse(m_AccessoryWarehouse);
+            }
+
+            {
+                var Dealers = configParser.Get("Dealers");
+                if (Dealers <= 0) throw new RuntimeException("Dealers <= 0!");
+
+                if (m_DealerRequestIntervalMs <= 0) throw new RuntimeException("m_DealerRequestIntervalMs <= 0!");
+
+                m_Dealers = new DealersWarehouse("Dealers", Dealers, Dealers, m_DealerRequestIntervalMs);
+            }
             m_bLogSale = configParser.Get("LogSale") == 1;
         } catch (Exception e) {
             Log.GetLogger().info(e.getMessage());
