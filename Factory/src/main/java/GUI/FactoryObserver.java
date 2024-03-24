@@ -12,7 +12,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 public class FactoryObserver extends JFrame {
-    public Integer m_UpdateRate = 1000 / 60;
+    public final Integer m_UpdateRate = 1000 / 60;
 
     public FactoryObserver(Factory factoryRef) {
         setTitle("CAR FACTORY");
@@ -28,11 +28,11 @@ public class FactoryObserver extends JFrame {
 
             @Override
             public void windowClosing(WindowEvent e) {
-                factoryRef.Shutdown();
             }
 
             @Override
             public void windowClosed(WindowEvent e) {
+                factoryRef.Shutdown();
             }
 
             @Override
@@ -130,8 +130,8 @@ public class FactoryObserver extends JFrame {
         }
 
         add(panel);
-
         setVisible(true);
+
         Timer timer = new Timer(m_UpdateRate, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -141,6 +141,8 @@ public class FactoryObserver extends JFrame {
                 enginesInStorageLabel.setText("Engines in storage: " + factoryRef.getCurrentProducedEngineCount());
                 accessoriesInStorageLabel.setText("Accessories in storage: " + factoryRef.getCurrentAccessoriesCount());
                 panel.repaint();
+
+                Toolkit.getDefaultToolkit().sync();
             }
         });
         timer.start();

@@ -21,7 +21,6 @@ public class AssemblerWarehouse extends Warehouse {
         m_WorkerCount = workerCount;
         m_WorkerPool = new ThreadPool(m_WorkerCount);
 
-
         m_ControllerLock = new Object();
         m_Controller = new Thread() {
             @Override

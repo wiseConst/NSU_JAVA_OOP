@@ -31,7 +31,6 @@ public class DealersWarehouse extends Warehouse {
         m_DealerPool.shutdown();
     }
 
-
     public void AcquireCars(AssemblerWarehouse assemblerWarehouse, boolean bLogSale) {
         if (!m_DealerPool.isValid()) return;
 

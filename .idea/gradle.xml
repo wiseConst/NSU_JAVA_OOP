@@ -29,6 +29,17 @@
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/OnlineChat" />
+        <option name="gradleHome" value="" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/OnlineChat" />
+            <option value="$PROJECT_DIR$/OnlineChat/Client" />
+            <option value="$PROJECT_DIR$/OnlineChat/Server" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/StackCalculatorV2" />
         <option name="modules">
           <set>
