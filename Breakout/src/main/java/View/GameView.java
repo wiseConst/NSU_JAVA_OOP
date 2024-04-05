@@ -39,7 +39,6 @@ public class GameView implements View {
         m_GameTimer = new Timer(CoreDefines.s_UPDATE_RATE, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
                 if (m_ModelRef.IsStopRequested()) {
                     stopGame();
                     m_ModelRef.SetStopRequested(false);

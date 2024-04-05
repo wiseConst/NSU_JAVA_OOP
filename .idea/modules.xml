@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/OOP.iml" filepath="$PROJECT_DIR$/OOP.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Client/OnlineChat.Client.main.iml" filepath="$PROJECT_DIR$/.idea/modules/Client/OnlineChat.Client.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Server/OnlineChat.Server.main.iml" filepath="$PROJECT_DIR$/.idea/modules/Server/OnlineChat.Server.main.iml" />
     </modules>
   </component>
 </project>

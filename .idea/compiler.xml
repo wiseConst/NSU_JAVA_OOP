@@ -2,9 +2,8 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
-      <module name="Breakout.main" target="21" />
-      <module name="Breakout.test" target="21" />
-      <module name="BullsAndCows" target="21" />
+      <module name="OnlineChat.Core.main" target="21" />
+      <module name="OnlineChat.Core.test" target="21" />
     </bytecodeTargetLevel>
   </component>
 </project>

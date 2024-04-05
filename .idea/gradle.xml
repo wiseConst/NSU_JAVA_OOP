@@ -35,6 +35,7 @@
           <set>
             <option value="$PROJECT_DIR$/OnlineChat" />
             <option value="$PROJECT_DIR$/OnlineChat/Client" />
+            <option value="$PROJECT_DIR$/OnlineChat/Core" />
             <option value="$PROJECT_DIR$/OnlineChat/Server" />
           </set>
         </option>

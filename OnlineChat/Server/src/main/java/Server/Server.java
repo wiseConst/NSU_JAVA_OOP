@@ -1,32 +1,59 @@
 package Server;
 
-import Utils.ClientHandler;
+import ClientHandler.ClientHandler;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.Timer;
+import java.util.UUID;
+
+import Log.*;
 
 public class Server {
-
     private ServerSocket serverSocket = null;
+    private Integer clientTimeout = 0;
+    private long lastServerActivity = 0;
 
-    public Server(ServerSocket serverSocket) {
+    public Server(ServerSocket serverSocket, Integer clientTimeout) {
         this.serverSocket = serverSocket;
+        this.clientTimeout = clientTimeout;
     }
 
-    public void startServer() {
-        try {
-            while (!serverSocket.isClosed()) {
+    public void startServer() throws IOException {
+        Log.logInfo("Server started!");
 
-                var socket = serverSocket.accept();
-                System.out.println("Client has connected!");
-                var clientHandler = new ClientHandler(socket);
+        lastServerActivity = System.currentTimeMillis();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    if (ClientHandler.getCount() != 0) {
+                        try {
+                            Thread.sleep(2500);
+                            continue;
+                        } catch (InterruptedException e) {
+                            Log.logWarn(e.getMessage());
+                        }
+                    }
 
-                var thread = new Thread(clientHandler);
-                thread.start();
-
+                    // server no activity for 1 minute.
+                    var diff = System.currentTimeMillis() - lastServerActivity;
+                    if (diff > 60000) {
+                        closeSocketServer();
+                        return;
+                    }
+                }
             }
-        } catch (IOException e) {
+        }).start();
 
+        while (!serverSocket.isClosed()) {
+            try {
+                var thread = new Thread(new ClientHandler(serverSocket.accept(), clientTimeout));
+                thread.start();
+                lastServerActivity = System.currentTimeMillis();
+            } catch (IOException e) {
+                Log.logWarn("Failed to accept new connection! " + e.getMessage());
+            }
         }
     }
 
@@ -35,9 +62,8 @@ public class Server {
             if (serverSocket != null)
                 serverSocket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.logWarn("Failed to close socket server! " + e.getMessage());
         }
     }
-
 
 }

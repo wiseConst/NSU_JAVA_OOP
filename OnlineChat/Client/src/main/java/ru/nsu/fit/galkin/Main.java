@@ -1,31 +1,18 @@
 package ru.nsu.fit.galkin;
 
-import Client.Client;
+import Config.ClientConfig;
+import UI.ClientLogin;
 
-import java.io.*;
-import java.net.*;
-import java.util.Scanner;
-
+import java.io.IOException;
 
 public class Main {
-    public static void main(String[] args) {
+    private static final String clientConfigPath = "client.cfg";
 
-        // ports free: [1024, 49151]
+    public static void main(String[] args) throws IOException {
 
-        try {
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("Enter your username for group chat: ");
-            var username = scanner.nextLine();
-            var socket = new Socket("localhost", 1234);
-
-            if (socket != null) {
-                var client = new Client(socket, username);
-                client.listenForMessage();
-                client.sendMessage();
-            }
-        } catch (IOException e) {
-            System.out.println("Failed to open socket: " + e.getMessage());
-        }
+        ClientConfig.load(clientConfigPath);
+        ClientLogin app = new ClientLogin();
 
     }
+
 }
