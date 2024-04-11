@@ -20,7 +20,7 @@ public class Main {
             return;
         }
 
-        Server server = new Server(new ServerSocket(port), ServerConfig.getTimeout());
+        Server server = new Server(new ServerSocket(port), ServerConfig.getServerTimeout(), ServerConfig.getClientTimeout());
         server.startServer();
         server.closeSocketServer();
     }

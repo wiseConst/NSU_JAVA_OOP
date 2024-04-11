@@ -1,14 +1,13 @@
 package UI;
 
 import Log.Log;
+import Client.Client;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.IOException;
 
 public class ClientLogin extends JFrame {
@@ -26,7 +25,7 @@ public class ClientLogin extends JFrame {
 
     public ClientLogin() {
         try {
-           UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e1) {
             Log.GetLogger().warn("Failed to sync Swing with OS UI." + e1.getMessage());
         }
@@ -105,6 +104,7 @@ public class ClientLogin extends JFrame {
 
     private void login(String name, String address, int port) throws IOException {
         dispose();
-        new ClientWindow(name, address, port);
+        var window = new ClientWindow(new Client(name, address, port));
+        window.shutdown();
     }
 }

@@ -33,7 +33,7 @@ public class MessageHistory {
 
     public synchronized void update(String username, String message) {
         if (history != null && messagesCount > 0) {
-            if (history.size() < messagesCount) {
+            if (history.size() <= messagesCount) {
                 history.add(new Entry(username, message));
             } else {
                 history.set(currentUpdateMessageIndex, new Entry(username, message));

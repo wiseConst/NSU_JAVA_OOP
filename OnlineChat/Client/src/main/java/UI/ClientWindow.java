@@ -1,8 +1,10 @@
 package UI;
 
-import Connection.*;
-import DTO.DTO;
+
+import Callback.Callback;
 import Log.Log;
+import Client.Client;
+import DTO.DTO;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,17 +12,9 @@ import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
-import java.net.Socket;
 
 public class ClientWindow extends JFrame {
-    // Client
-    private Connection clientConnection = null;
-    private String username = null;
-    private boolean bConnectionApproved = false;
-    private Object clientConnectionEstablishedLock = null;
-    private Thread clientListener = null;
-
-    // UI
+    private Client client = null;
     private UserList userList = null;
     private JPanel contentPane;
     private JTextField txtMessage;
@@ -31,27 +25,30 @@ public class ClientWindow extends JFrame {
     private JMenuItem mntmOnlineUsers;
     private JMenuItem mntmExit;
 
+    private class MessageResponseCallback implements Callback {
+        @Override
+        public void call(DTO dto) {
+            var message = dto.getMessage();
 
-    public ClientWindow(String name, String address, int port) {
-        setupWindow();
-        this.username = name;
+            Style style = history.addStyle("ColoredText", null);
+            StyleConstants.setForeground(style, new Color(dto.getUsername().hashCode() % 16777216));
 
-        clientConnection = ConnectionFactory.create();
-        clientConnectionEstablishedLock = new Object();
-        listenForMessage();
-
-        try {
-            clientConnection.connect(new Socket(address, port));
-            clientConnection.send(DTO.getLoginRequest(username));
-
-            synchronized (clientConnectionEstablishedLock) {
-                clientConnectionEstablishedLock.notify();
-            }
-        } catch (IOException e) {
-            shutdown();
-            Log.GetLogger().warn(e.getMessage());
-            return;
+            console(dto.getUsername() + ": " + message, style);
         }
+    }
+
+    private class UserListResponseCallback implements Callback {
+        @Override
+        public void call(DTO dto) {
+            userList.update(dto.getMessage().split("\n"));
+        }
+    }
+
+    public ClientWindow(Client client) {
+        setupWindow();
+        this.client = client;
+        this.client.setMessageResponseCallback(new MessageResponseCallback());
+        this.client.setUserListResponseCallback(new UserListResponseCallback());
 
         userList = new UserList();
     }
@@ -80,7 +77,7 @@ public class ClientWindow extends JFrame {
             mntmOnlineUsers.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     try {
-                        clientConnection.send(DTO.getUserListRequest(username));
+                        client.send(DTO.getUserListRequest(client.getUsername()));
                     } catch (IOException ex) {
                         Log.GetLogger().warn(ex.getMessage());
                         shutdown();
@@ -96,7 +93,7 @@ public class ClientWindow extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
-                        clientConnection.send(DTO.getLogoutRequest(username));
+                        client.send(DTO.getLogoutRequest(client.getUsername()));
                     } catch (IOException ex) {
                         Log.GetLogger().warn(ex.getMessage());
                     }
@@ -190,7 +187,7 @@ public class ClientWindow extends JFrame {
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 try {
-                    clientConnection.send(DTO.getLogoutRequest(username));
+                    client.send(DTO.getLogoutRequest(client.getUsername()));
                 } catch (IOException ex) {
                     Log.GetLogger().warn(ex.getMessage());
                     shutdown();
@@ -207,82 +204,17 @@ public class ClientWindow extends JFrame {
         if (message.isEmpty()) return;
 
         Style style = history.addStyle("ColoredText", null);
-        StyleConstants.setForeground(style, new Color(username.hashCode() % 16777216));
+        StyleConstants.setForeground(style, new Color(client.getUsername().hashCode() % 16777216));
 
-        console(username + ": " + message, style);
-        clientConnection.send(DTO.getNewMessageRequest(username, message));
+        console(client.getUsername() + ": " + message, style);
+        client.send(DTO.getNewMessageRequest(client.getUsername(), message));
     }
 
     public void shutdown() {
-        dispose();
-
-        if (clientConnection != null) {
-            try {
-                clientConnection.close();
-            } catch (IOException e) {
-                Log.GetLogger().warn(e.getMessage());
-            }
-        }
-
-        synchronized (clientConnectionEstablishedLock) {
-            clientConnectionEstablishedLock.notify();
-        }
-
         if (userList != null) userList.dispose();
-        if (clientListener != null) clientListener.interrupt();
-    }
+        if(client != null) client.shutdown();
 
-    private void listenForMessage() {
-        clientListener = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        // Wait a bit until connection establishes.
-                        if (clientConnection.getSocket() == null) {
-                            synchronized (clientConnectionEstablishedLock) {
-                                clientConnectionEstablishedLock.wait();
-                            }
-                        }
-
-                        var dto = clientConnection.receive();
-                        if (dto.isLoginResponse()) {
-                            bConnectionApproved = dto.isSuccessResult();
-
-                            if (!bConnectionApproved) {
-                                Log.GetLogger().error(dto.getMessage());
-                                shutdown();
-                                return;
-                            } else {
-                                Log.GetLogger().info("Connection approved!");
-                            }
-                        } else if (dto.isMessageResponse()) {
-                            var message = dto.getMessage();
-
-                            Style style = history.addStyle("ColoredText", null);
-                            StyleConstants.setForeground(style, new Color(dto.getUsername().hashCode() % 16777216));
-
-                            console(dto.getUsername() + ": " + message, style);
-                        } else if (dto.isLogoutResponse()) {
-                            var bLogoutSuccess = dto.isSuccessResult();
-                            if (!bLogoutSuccess) Log.GetLogger().error("Logout fail: " + dto.getMessage());
-                            else Log.GetLogger().info("Successfully disconnected!");
-
-                            shutdown();
-                            return;
-                        } else if (dto.isUserListResponse()) {
-                            userList.update(dto.getMessage().split("\n"));
-                        }
-                    } catch (ClassNotFoundException | InterruptedException | IOException e) {
-                        Log.GetLogger().warn("Connection dropped!");
-                        shutdown();
-                        return;
-                    }
-
-                }
-            }
-        });
-        clientListener.start();
+        dispose();
     }
 
     private void console(String message, Style style) {

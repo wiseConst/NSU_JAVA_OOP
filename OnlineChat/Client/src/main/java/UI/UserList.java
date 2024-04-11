@@ -5,7 +5,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class UserList extends JFrame {
-
     private JPanel contentPane;
     private JList list;
 

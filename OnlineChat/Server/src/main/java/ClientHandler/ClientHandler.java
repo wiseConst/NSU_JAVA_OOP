@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ClientHandler implements Runnable {
     private static ConcurrentHashMap<String, ClientHandler> clientHandlers = new ConcurrentHashMap<>();
-    private static MessageHistory messageHistory = new MessageHistory(5);
+    private static MessageHistory messageHistory = new MessageHistory(3);
     private Connection clientConnection = null;
     private boolean bRunning = false;
     private long clientLastActivityTime = 0;
@@ -36,84 +36,20 @@ public class ClientHandler implements Runnable {
             try {
                 var dto = clientConnection.receive();
                 clientLastActivityTime = System.currentTimeMillis();
+
                 if (dto.isLoginRequest()) {
-                    var username = dto.getUsername();
-
-                    AtomicBoolean bUniqueName = new AtomicBoolean(true);
-                    clientHandlers.forEach((clientName, clientHandler) -> {
-                        if (clientName.equals(username)) {
-                            bUniqueName.set(false);
-                        }
-                    });
-
-                    if (!bUniqueName.get()) {
-                        clientConnection.send(DTO.getLoginResponse(DTO.Result.ERROR_RESULT, username, "Nickname is already occupied!"));
-                        clientConnection.close();
-                        bRunning = false;
-
-                        Log.logInfo("SERVER LOCAL: " + username + " already exists!");
-                        return;
-                    } else {
-                        clientConnection.send(DTO.getLoginResponse(DTO.Result.SUCCESS_RESULT, username, ""));
-
-                        clientConnection.getSocket().setSoTimeout(clientTimeout);
-                        clientLastActivityTime = System.currentTimeMillis();
-
-                        for (var entry : messageHistory.getHistory()) {
-                            clientConnection.send(DTO.getNewMessageResponse(entry.getUsername(), entry.getMessage()));
-                        }
-                    }
-
-                    //Log.logInfo("SERVER LOCAL: " + username + " has connected!");
-                    clientHandlers.put(username, this);
-                    broadcastMessage(this, "SERVER", username + " has entered the chat!");
-                    messageHistory.update("SERVER", username + " has entered the chat!");
+                    handleLoginRequest(dto);
                 } else if (dto.isMessageRequest()) {
-                    var message = dto.getMessage();
-                    System.out.println("SERVER LOCAL: user(" + dto.getUsername() + ") says: " + message);
-                    broadcastMessage(this, dto.getUsername(), message);
-                    messageHistory.update(dto.getUsername(), message);
+                    handleMessageRequest(dto);
                 } else if (dto.isLogoutRequest()) {
-                    clientConnection.send(DTO.getLogoutResponse(DTO.Result.SUCCESS_RESULT, "SERVER", "success"));
-                    closeEverything(dto.getUsername());
-                    broadcastMessage(this, "SERVER", dto.getUsername() + " disconnected!");
-
-                    messageHistory.update("SERVER", dto.getUsername() + " disconnected!");
-
-                    var userList = new StringBuilder();
-                    for (var key : clientHandlers.keySet()) {
-                        userList.append(key).append("\n");
-                    }
-                    broadcastUserList(this, "SERVER", userList.toString()); // Update to others
+                    handleLogoutRequest(dto);
                 } else if (dto.isUserListRequest()) {
-                    var userList = new StringBuilder();
-                    for (var key : clientHandlers.keySet()) {
-                        userList.append(key).append("\n");
-                    }
-                    clientConnection.send(DTO.getUserListResponse("SERVER", userList.toString())); // Update to one who requested
-                    broadcastUserList(this, "SERVER", userList.toString()); // Update to others
+                    handleUserListRequest(dto);
                 }
+
             } catch (SocketTimeoutException e) {
-                var diff =
-                        System.currentTimeMillis() - clientLastActivityTime;
+                handleSocketTimeout(e);
 
-                if (diff <= clientTimeout) continue;
-
-
-                try {
-                    clientConnection.send(DTO.getLogoutResponse(DTO.Result.SUCCESS_RESULT, "SERVER", "success"));
-
-                    String clientName = null;
-                    for (var entry : clientHandlers.entrySet()) {
-                        if (this.equals(entry.getValue())) {
-                            clientName = entry.getKey();
-                            break;
-                        }
-                    }
-                    closeEverything(clientName);
-                } catch (IOException ex) {
-                    Log.logWarn(e.getMessage());
-                }
             } catch (IOException | ClassNotFoundException e) {
                 Log.logWarn(e.getMessage());
 
@@ -124,10 +60,117 @@ public class ClientHandler implements Runnable {
                         break;
                     }
                 }
+
                 closeEverything(clientName);
                 break;
             }
         }
+    }
+
+    private void handleSocketTimeout(SocketTimeoutException e) {
+        var diff = System.currentTimeMillis() - clientLastActivityTime;
+        if (diff <= clientTimeout) return;
+
+        try {
+            String username = null;
+            Connection userConnection = null;
+            for (var entry : clientHandlers.entrySet()) {
+                if (this.equals(entry.getValue())) {
+                    username = entry.getKey();
+                    userConnection = clientHandlers.get(username).clientConnection;
+                    break;
+                }
+            }
+
+            if (username == null || userConnection == null) {
+                Log.logInfo("SERVER LOCAL: " + username + " is left out.");
+                return;
+            }
+
+            userConnection.send(DTO.getLogoutResponse(DTO.Result.SUCCESS_RESULT, "SERVER", "success"));
+            closeEverything(username);
+
+            messageHistory.update("SERVER", username + " has disconnected! (timeout expired)");
+            var userList = new StringBuilder();
+            for (var key : clientHandlers.keySet()) {
+                userList.append(key).append("\n");
+            }
+            broadcastUserList(null, "SERVER", userList.toString()); // Update to others
+        } catch (IOException ex) {
+            Log.logWarn(e.getMessage());
+        }
+    }
+
+    private void handleUserListRequest(DTO dto) throws IOException {
+        var userList = new StringBuilder();
+        for (var key : clientHandlers.keySet()) {
+            userList.append(key).append("\n");
+        }
+
+        clientConnection.send(DTO.getUserListResponse("SERVER", userList.toString())); // Update to one who requested
+        broadcastUserList(this, "SERVER", userList.toString()); // Update to others
+    }
+
+    private void handleLoginRequest(DTO dto) throws IOException {
+        var username = dto.getUsername();
+
+        AtomicBoolean bUniqueName = new AtomicBoolean(true);
+        clientHandlers.forEach((clientName, clientHandler) -> {
+            if (clientName.equals(username)) {
+                bUniqueName.set(false);
+            }
+        });
+
+        if (!bUniqueName.get()) {
+            clientConnection.send(DTO.getLoginResponse(DTO.Result.ERROR_RESULT, username, "Nickname is already occupied!"));
+            clientConnection.close();
+            bRunning = false;
+
+            Log.logInfo("SERVER LOCAL: " + username + " already exists!");
+            return;
+        } else {
+            clientConnection.send(DTO.getLoginResponse(DTO.Result.SUCCESS_RESULT, username, ""));
+
+            clientConnection.getSocket().setSoTimeout(clientTimeout);
+            clientLastActivityTime = System.currentTimeMillis();
+
+            for (var entry : messageHistory.getHistory()) {
+                clientConnection.send(DTO.getNewMessageResponse(entry.getUsername(), entry.getMessage()));
+            }
+        }
+
+        Log.logInfo("SERVER LOCAL: " + username + " has connected!");
+        clientHandlers.put(username, this);
+        broadcastMessage(null/*this*/, "SERVER", username + " has entered the chat!");
+        messageHistory.update("SERVER", username + " has entered the chat!");
+
+        var userList = new StringBuilder();
+        for (var key : clientHandlers.keySet()) {
+            userList.append(key).append("\n");
+        }
+        broadcastUserList(null, "SERVER", userList.toString()); // Update to others
+    }
+
+    private void handleMessageRequest(DTO dto) {
+        var message = dto.getMessage();
+        System.out.println("SERVER LOCAL: user(" + dto.getUsername() + ") says: " + message);
+        broadcastMessage(this, dto.getUsername(), message);
+        messageHistory.update(dto.getUsername(), message);
+    }
+
+    private void handleLogoutRequest(DTO dto) throws IOException {
+        clientConnection.send(DTO.getLogoutResponse(DTO.Result.SUCCESS_RESULT, "SERVER", "success"));
+        closeEverything(dto.getUsername());
+        broadcastMessage(this, "SERVER", dto.getUsername() + " disconnected!");
+
+        messageHistory.update("SERVER", dto.getUsername() + " disconnected!");
+
+        var userList = new StringBuilder();
+        for (var key : clientHandlers.keySet()) {
+            userList.append(key).append("\n");
+        }
+        System.out.println(userList);
+        broadcastUserList(null, "SERVER", userList.toString()); // Update to others
     }
 
     public static int getCount() {
@@ -166,7 +209,7 @@ public class ClientHandler implements Runnable {
             if (clientHandler.clientConnection != null) clientHandler.clientConnection.close();
             clientHandler.bRunning = false;
 
-            broadcastMessage(clientHandlers.get(clientName), clientName, "SERVER: " + clientName + " has left the chat!");
+            broadcastMessage(clientHandlers.get(clientName), "SERVER", clientName + " has left the chat!");
             clientHandlers.remove(clientName);
         } catch (IOException e) {
             Log.logWarn(e.getMessage());

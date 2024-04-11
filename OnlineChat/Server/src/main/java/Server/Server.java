@@ -13,9 +13,11 @@ public class Server {
     private ServerSocket serverSocket = null;
     private Integer clientTimeout = 0;
     private long lastServerActivity = 0;
+    private Integer serverTimeout = 0;
 
-    public Server(ServerSocket serverSocket, Integer clientTimeout) {
+    public Server(ServerSocket serverSocket, Integer serverTimeout, Integer clientTimeout) {
         this.serverSocket = serverSocket;
+        this.serverTimeout = serverTimeout;
         this.clientTimeout = clientTimeout;
     }
 
@@ -36,9 +38,8 @@ public class Server {
                         }
                     }
 
-                    // server no activity for 1 minute.
                     var diff = System.currentTimeMillis() - lastServerActivity;
-                    if (diff > 60000) {
+                    if (diff > serverTimeout) {
                         closeSocketServer();
                         return;
                     }

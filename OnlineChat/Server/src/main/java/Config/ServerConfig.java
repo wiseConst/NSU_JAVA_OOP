@@ -1,13 +1,11 @@
 package Config;
 
+import DTO.DTOType;
+import Log.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.util.Properties;
-
-import DTO.*;
-
-import Log.*;
 
 public class ServerConfig {
 
@@ -43,14 +41,24 @@ public class ServerConfig {
         return Boolean.parseBoolean(properties.getProperty("bLogEvents"));
     }
 
-    public static Integer getTimeout()
+    public static Integer getServerTimeout()
             throws IOException {
         if (properties == null) {
             Log.logError("Forgot to ServerConfig.load()!");
             return 0;
         }
 
-        return Integer.parseInt(properties.getProperty("timeout"));
+        return Integer.parseInt(properties.getProperty("serverTimeout"));
+    }
+
+    public static Integer getClientTimeout()
+            throws IOException {
+        if (properties == null) {
+            Log.logError("Forgot to ServerConfig.load()!");
+            return 0;
+        }
+
+        return Integer.parseInt(properties.getProperty("clientTimeout"));
     }
 
     public static DTOType getDTOType() {
