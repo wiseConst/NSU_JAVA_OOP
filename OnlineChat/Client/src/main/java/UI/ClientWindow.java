@@ -44,15 +44,26 @@ public class ClientWindow extends JFrame {
         }
     }
 
+    private class LogoutResponseCallback implements Callback {
+        @Override
+        public void call(DTO dto) {
+            var bLogoutSuccess = dto.isSuccessResult();
+            if (!bLogoutSuccess) Log.GetLogger().error("Logout fail: " + dto.getMessage());
+            else Log.GetLogger().info("Successfully disconnected!");
+
+            shutdown();
+        }
+    }
+
     public ClientWindow(Client client) {
         setupWindow();
         this.client = client;
         this.client.setMessageResponseCallback(new MessageResponseCallback());
         this.client.setUserListResponseCallback(new UserListResponseCallback());
+        this.client.setLogoutResponseCallback(new LogoutResponseCallback());
 
         userList = new UserList();
     }
-
 
     private void setupWindow() {
         setTitle("NSUGram Client");
@@ -212,7 +223,6 @@ public class ClientWindow extends JFrame {
 
     public void shutdown() {
         if (userList != null) userList.dispose();
-        if(client != null) client.shutdown();
 
         dispose();
     }

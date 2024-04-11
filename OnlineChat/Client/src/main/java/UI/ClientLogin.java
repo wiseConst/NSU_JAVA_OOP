@@ -104,7 +104,6 @@ public class ClientLogin extends JFrame {
 
     private void login(String name, String address, int port) throws IOException {
         dispose();
-        var window = new ClientWindow(new Client(name, address, port));
-        window.shutdown();
+        new ClientWindow(new Client(name, address, port));
     }
 }

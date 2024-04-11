@@ -16,6 +16,7 @@ public class Client {
     private Thread clientListener = null;
     private Callback messageResponseCallback = null;
     private Callback userListResponseCallback = null;
+    private Callback logoutResponseCallback = null;
 
     public Client(String name, String address, int port) {
         this.username = name;
@@ -58,10 +59,15 @@ public class Client {
         this.userListResponseCallback = userListResponseCallback;
     }
 
+    public void setLogoutResponseCallback(Callback logoutResponseCallback) {
+        this.logoutResponseCallback = logoutResponseCallback;
+    }
+
     public void shutdown() {
         if (clientConnection != null) {
             try {
                 clientConnection.close();
+                clientConnection = null;
             } catch (IOException e) {
                 Log.GetLogger().warn(e.getMessage());
             }
@@ -71,9 +77,13 @@ public class Client {
             clientConnectionEstablishedLock.notify();
         }
 
-        if (clientListener != null) clientListener.interrupt();
+        if (clientListener != null) {
+            clientListener.interrupt();
+            clientListener = null;
+        }
         messageResponseCallback = null;
         userListResponseCallback = null;
+        logoutResponseCallback = null;
     }
 
     private void listenForMessage() {
@@ -104,9 +114,8 @@ public class Client {
                             if (messageResponseCallback != null)
                                 messageResponseCallback.call(dto);
                         } else if (dto.isLogoutResponse()) {
-                            var bLogoutSuccess = dto.isSuccessResult();
-                            if (!bLogoutSuccess) Log.GetLogger().error("Logout fail: " + dto.getMessage());
-                            else Log.GetLogger().info("Successfully disconnected!");
+                            if (logoutResponseCallback != null)
+                                logoutResponseCallback.call(dto);
 
                             shutdown();
                             return;
