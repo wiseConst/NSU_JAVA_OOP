@@ -17,6 +17,7 @@ public class Client {
     private Callback messageResponseCallback = null;
     private Callback userListResponseCallback = null;
     private Callback logoutResponseCallback = null;
+    private Callback loginResponseCallback = null;
 
     public Client(String name, String address, int port) {
         this.username = name;
@@ -27,6 +28,17 @@ public class Client {
 
         try {
             clientConnection.connect(new Socket(address, port));
+
+        } catch (IOException e) {
+            Log.GetLogger().warn(e.getMessage());
+            shutdown();
+        }
+    }
+
+    public void login() {
+        if (bConnectionApproved) return;
+
+        try {
             clientConnection.send(DTO.getLoginRequest(username));
 
             synchronized (clientConnectionEstablishedLock) {
@@ -51,6 +63,10 @@ public class Client {
         clientConnection.send(dto);
     }
 
+    public final boolean isConnectionApproved() {
+        return bConnectionApproved;
+    }
+
     public void setMessageResponseCallback(Callback messageResponseCallback) {
         this.messageResponseCallback = messageResponseCallback;
     }
@@ -61,6 +77,10 @@ public class Client {
 
     public void setLogoutResponseCallback(Callback logoutResponseCallback) {
         this.logoutResponseCallback = logoutResponseCallback;
+    }
+
+    public void setLoginResponseCallback(Callback loginResponseCallback) {
+        this.loginResponseCallback = loginResponseCallback;
     }
 
     public void shutdown() {
@@ -101,8 +121,10 @@ public class Client {
 
                         var dto = clientConnection.receive();
                         if (dto.isLoginResponse()) {
-                            bConnectionApproved = dto.isSuccessResult();
+                            if (loginResponseCallback != null)
+                                loginResponseCallback.call(dto);
 
+                            bConnectionApproved = dto.isSuccessResult();
                             if (!bConnectionApproved) {
                                 Log.GetLogger().error(dto.getMessage());
                                 shutdown();

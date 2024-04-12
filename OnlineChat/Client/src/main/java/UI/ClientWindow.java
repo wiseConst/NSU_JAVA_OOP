@@ -55,12 +55,24 @@ public class ClientWindow extends JFrame {
         }
     }
 
+    private class LoginResponseCallback implements Callback {
+        @Override
+        public void call(DTO dto) {
+            if (!dto.isSuccessResult() && dto.isLoginResponse())
+                shutdown();
+        }
+    }
+
+
     public ClientWindow(Client client) {
         setupWindow();
         this.client = client;
         this.client.setMessageResponseCallback(new MessageResponseCallback());
         this.client.setUserListResponseCallback(new UserListResponseCallback());
         this.client.setLogoutResponseCallback(new LogoutResponseCallback());
+        this.client.setLoginResponseCallback(new LoginResponseCallback());
+
+        this.client.login();
 
         userList = new UserList();
     }
@@ -216,8 +228,8 @@ public class ClientWindow extends JFrame {
 
         Style style = history.addStyle("ColoredText", null);
         StyleConstants.setForeground(style, new Color(client.getUsername().hashCode() % 16777216));
-
         console(client.getUsername() + ": " + message, style);
+
         client.send(DTO.getNewMessageRequest(client.getUsername(), message));
     }
 
